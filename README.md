@@ -67,7 +67,7 @@ python3 cli.py dashboard --projects-dir /path/to/projects --db /path/to/cache.db
 | `CLAUDE_PROJECTS_DIR` | `~/.claude/projects` | Where to scan for session JSONL files |
 | `TOKEN_DASHBOARD_DB` | `~/.claude/token-dashboard.db` | SQLite cache location |
 
-Pricing lives in [`pricing.json`](pricing.json). Edit it directly if model prices change or to add a new plan.
+Pricing lives in [`pricing.json`](pricing.json): dollars per 1 million tokens for each model (input, output, cache read, and 5-minute / 1-hour cache writes). Edit it directly if model prices change or to add a new plan, then restart the dashboard. A model not listed is priced from its family (Fable, Opus, Sonnet, Haiku) and marked as an estimate.
 
 ## CLI reference
 
@@ -85,6 +85,8 @@ python3 cli.py dashboard --no-scan   # skip the initial scan (use cached DB only
 
 Change the port: `PORT=9000 python3 cli.py dashboard`.
 
+**Want it always on?** [docs/run-at-login.md](docs/run-at-login.md) has copy-paste steps for macOS, Windows, and Linux so the dashboard starts when you log in. Then just bookmark http://127.0.0.1:8080.
+
 ## The 7 tabs
 
 The dashboard is a single page with a hash-router tab bar across the top. Each tab is backed by its own JSON API under `/api/`:
@@ -92,7 +94,7 @@ The dashboard is a single page with a hash-router tab bar across the top. Each t
 - **Overview** — all-time input/output/cache tokens, sessions, turns, estimated cost on your chosen plan, daily work and cache-read charts, tokens-by-project, token share by model, top tools by call count, and recent sessions. This is the landing tab.
 - **Prompts** — your most expensive user prompts ranked by tokens. Click any row to see the assistant response, tool calls made, and the size of each tool result.
 - **Sessions** — turn-by-turn view of any single session, with per-turn tokens and tool calls.
-- **Projects** — per-project comparison: tokens, session counts, and which files were touched most.
+- **Projects** — per-project comparison: tokens, session counts, and estimated cost. The **Create summary** button turns the tab (all projects or one) into a short report you can copy or download as Markdown for a client email or invoice.
 - **Skills** — which skills you invoke most often, and (where we can measure them) their token cost. See [limitations](docs/KNOWN_LIMITATIONS.md#skills-token-counts-are-partial).
 - **Tips** — rule-based suggestions for reducing token usage (repeated file reads, oversized tool results, low cache-hit rate, etc.).
 - **Settings** — switch pricing between API / Pro / Max / Max-20x so cost figures everywhere else reflect your actual plan.
@@ -119,7 +121,7 @@ Nothing leaves your machine. No telemetry. No remote calls for your data. The br
 
 ## Tech stack
 
-Python 3 (stdlib only) for the CLI, scanner, and HTTP server. SQLite for the local cache. Vanilla JS + ECharts for the UI, no build step. Dark theme, hash-based router, server-sent events for live refresh.
+Python 3 (stdlib only) for the CLI, scanner, and HTTP server. SQLite for the local cache. Vanilla JS + ECharts for the UI, no build step. Light "Linen" theme (colors live as tokens at the top of `web/style.css`), hash-based router, server-sent events for live refresh.
 
 Data flow: `cli.py` → `token_dashboard/scanner.py` → SQLite DB; `token_dashboard/server.py` exposes `/api/*` JSON routes and serves `web/`.
 
@@ -127,6 +129,7 @@ Data flow: `cli.py` → `token_dashboard/scanner.py` → SQLite DB; `token_dashb
 
 - [`CLAUDE.md`](CLAUDE.md) — conventions and architecture overview (also picked up automatically by Claude Code)
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to develop and test
+- [`docs/run-at-login.md`](docs/run-at-login.md) — keep the dashboard running in the background
 - [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) — rough edges
 - [`docs/inspiration.md`](docs/inspiration.md) — prior art and how this project diverges
 
