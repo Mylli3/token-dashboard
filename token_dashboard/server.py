@@ -14,6 +14,7 @@ from .db import (
     overview_totals, expensive_prompts, project_summary,
     tool_token_breakdown, recent_sessions, session_turns,
     daily_token_breakdown, model_breakdown, skill_breakdown,
+    project_model_usage,
 )
 from .pricing import load_pricing, cost_for, get_plan, set_plan
 from .tips import all_tips, dismiss_tip
@@ -110,7 +111,21 @@ def build_handler(db_path: str, projects_dir: str):
                     r["estimated_cost_usd"] = c["usd"]
                 return _send_json(self, rows)
             if path == "/api/projects":
-                return _send_json(self, project_summary(db_path, since, until))
+                rows = project_summary(db_path, since, until)
+                costs = {}
+                for u in project_model_usage(db_path, since, until):
+                    c = cost_for(u["model"], u, pricing)
+                    slot = costs.setdefault(u["project_slug"], {"usd": 0.0, "estimated": False})
+                    if c["usd"] is None:
+                        slot["estimated"] = True
+                    else:
+                        slot["usd"] += c["usd"]
+                        slot["estimated"] = slot["estimated"] or c["estimated"]
+                for r in rows:
+                    slot = costs.get(r["project_slug"], {"usd": 0.0, "estimated": False})
+                    r["cost_usd"] = round(slot["usd"], 6)
+                    r["cost_estimated"] = slot["estimated"]
+                return _send_json(self, rows)
             if path == "/api/tools":
                 return _send_json(self, tool_token_breakdown(db_path, since, until))
             if path == "/api/sessions":

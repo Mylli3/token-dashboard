@@ -1,5 +1,5 @@
 import { api, fmt, state } from '/web/app.js';
-import { barChart, donutChart, groupedBarChart, stackedBarChart } from '/web/charts.js';
+import { SERIES, barChart, donutChart, groupedBarChart, stackedBarChart } from '/web/charts.js';
 
 const RANGES = [
   { key: '7d',  label: '7d',  days: 7 },
@@ -143,9 +143,9 @@ export default async function (root) {
   stackedBarChart(document.getElementById('ch-daily-billable'), {
     categories: daily.map(d => d.day),
     series: [
-      { name: 'input',        values: daily.map(d => d.input_tokens),        color: '#4A9EFF' },
-      { name: 'output',       values: daily.map(d => d.output_tokens),       color: '#7C5CFF' },
-      { name: 'cache create', values: daily.map(d => d.cache_create_tokens), color: '#E8A23B' },
+      { name: 'input',        values: daily.map(d => d.input_tokens),        color: SERIES.input },
+      { name: 'output',       values: daily.map(d => d.output_tokens),       color: SERIES.output },
+      { name: 'cache create', values: daily.map(d => d.cache_create_tokens), color: SERIES.cacheCreate },
     ],
   });
 
@@ -153,7 +153,7 @@ export default async function (root) {
   stackedBarChart(document.getElementById('ch-daily-cache'), {
     categories: daily.map(d => d.day),
     series: [
-      { name: 'cache read', values: daily.map(d => d.cache_read_tokens), color: '#3FB68B' },
+      { name: 'cache read', values: daily.map(d => d.cache_read_tokens), color: SERIES.cacheRead },
     ],
   });
 
@@ -174,8 +174,8 @@ export default async function (root) {
       return name.length > 20 ? name.slice(0, 19) + '…' : name;
     }),
     series: [
-      { name: 'input',  values: topProjects.map(p => p.input_tokens  || 0), color: '#4A9EFF' },
-      { name: 'output', values: topProjects.map(p => p.output_tokens || 0), color: '#7C5CFF' },
+      { name: 'input',  values: topProjects.map(p => p.input_tokens  || 0), color: SERIES.input },
+      { name: 'output', values: topProjects.map(p => p.output_tokens || 0), color: SERIES.output },
     ],
   });
 
@@ -184,7 +184,7 @@ export default async function (root) {
   barChart(document.getElementById('ch-tools'), {
     categories: topTools.map(t => t.tool_name),
     values: topTools.map(t => t.calls),
-    color: '#7C5CFF',
+    color: SERIES.primary,
   });
 }
 

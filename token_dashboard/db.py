@@ -236,7 +236,9 @@ def project_summary(db_path, since=None, until=None) -> list:
              COALESCE(SUM(output_tokens), 0) AS output_tokens,
              SUM(input_tokens)+SUM(output_tokens)
                +SUM(cache_create_5m_tokens)+SUM(cache_create_1h_tokens) AS billable_tokens,
-             SUM(cache_read_tokens) AS cache_read_tokens
+             SUM(cache_read_tokens) AS cache_read_tokens,
+             MIN(timestamp) AS first_seen,
+             MAX(timestamp) AS last_seen
         FROM messages m
        WHERE 1=1 {rng}
        GROUP BY project_slug
@@ -371,6 +373,24 @@ def model_breakdown(db_path, since=None, until=None) -> list:
        WHERE type = 'assistant' {rng}
        GROUP BY model
        ORDER BY (input_tokens + output_tokens + cache_create_5m_tokens + cache_create_1h_tokens) DESC
+    """
+    with connect(db_path) as c:
+        return [dict(r) for r in c.execute(sql, args)]
+
+
+def project_model_usage(db_path, since=None, until=None) -> list:
+    """Per-(project, model) token totals so the caller can price each project."""
+    rng, args = _range_clause(since, until)
+    sql = f"""
+      SELECT project_slug, COALESCE(model, 'unknown') AS model,
+             COALESCE(SUM(input_tokens),0)            AS input_tokens,
+             COALESCE(SUM(output_tokens),0)           AS output_tokens,
+             COALESCE(SUM(cache_read_tokens),0)       AS cache_read_tokens,
+             COALESCE(SUM(cache_create_5m_tokens),0)  AS cache_create_5m_tokens,
+             COALESCE(SUM(cache_create_1h_tokens),0)  AS cache_create_1h_tokens
+        FROM messages
+       WHERE type = 'assistant' {rng}
+       GROUP BY project_slug, model
     """
     with connect(db_path) as c:
         return [dict(r) for r in c.execute(sql, args)]

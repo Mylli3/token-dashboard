@@ -58,6 +58,14 @@ class ServerTests(unittest.TestCase):
         self.assertIsInstance(body, list)
         self.assertEqual(body[0]["project_slug"], "p")
 
+    def test_projects_json_includes_cost_and_dates(self):
+        row = json.loads(self._get("/api/projects"))[0]
+        # 1 input + 1 output token on claude-haiku-4-5 at $1 / $5 per million
+        self.assertAlmostEqual(row["cost_usd"], 0.000006, places=6)
+        self.assertFalse(row["cost_estimated"])
+        self.assertEqual(row["first_seen"], "2026-04-19T00:00:00Z")
+        self.assertEqual(row["last_seen"], "2026-04-19T00:00:01Z")
+
     def test_plan_json(self):
         body = json.loads(self._get("/api/plan"))
         self.assertIn("plan", body)

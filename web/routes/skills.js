@@ -1,5 +1,5 @@
 import { api, fmt } from '/web/app.js';
-import { barChart } from '/web/charts.js';
+import { SERIES, barChart } from '/web/charts.js';
 
 const RANGES = [
   { key: '7d',  label: '7d',  days: 7 },
@@ -90,6 +90,6 @@ export default async function (root) {
   barChart(document.getElementById('ch-skills'), {
     categories: top.map(t => t.skill.length > 26 ? t.skill.slice(0, 25) + '…' : t.skill),
     values: top.map(t => t.invocations),
-    color: '#3FB68B',
+    color: SERIES.secondary,
   });
 }
